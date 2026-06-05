@@ -1,0 +1,329 @@
+---
+import Layout from '../layouts/Layout.astro';
+import OrderModal from '../components/OrderModal.jsx';
+---
+
+<Layout title="Justin - IT & Web | Jacksonville, FL">
+
+  <main>
+
+    <!-- =====================================================================
+         HERO
+         Dark slate background, amber accent. Sets the tone immediately.
+    ====================================================================== -->
+    <section class="bg-slate-900 px-6 py-24 md:py-36">
+      <div class="max-w-4xl mx-auto">
+
+        <p class="text-amber-400 text-sm uppercase tracking-[0.25em] font-bold mb-6">
+          Jacksonville, FL - Local. Independent.
+        </p>
+
+        <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white leading-none mb-8">
+          Your IT &amp; Web guy.<br />
+          <span class="text-amber-400">Not an agency.</span>
+        </h1>
+
+        <p class="text-slate-400 text-lg md:text-xl max-w-xl leading-relaxed mb-12">
+          Websites, Google presence, networking, devices - if it plugs in or goes online,
+          I can handle it. One person, local, reachable by phone. Every project is handed off with your code, your logins, and everything you need - whether you continue with me or not.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <!--
+            client:load tells Astro to hydrate this React component in the browser.
+            Without it, OrderModal would render as static HTML and the button wouldn't work.
+            This is what "React island" means - one interactive component in a static page.
+          -->
+          <OrderModal client:load />
+          <a
+            href="tel:+19045551234"
+            class="inline-block border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-400 font-bold uppercase tracking-widest text-sm px-8 py-4 transition-colors"
+          >
+            904-XXX-XXXX
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SERVICES
+         Light section - creates contrast rhythm with the dark hero above.
+    ====================================================================== -->
+    <section class="bg-white px-6 py-20">
+      <div class="max-w-4xl mx-auto">
+
+        <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">What I do</p>
+        <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-12">Services</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          {/*
+            In Astro you can still use JSX-style expressions inside the template.
+            But notice - no map() over a useState array. This is just static data
+            defined at build time. No hooks, no re-renders.
+          */}
+
+          {[
+            {
+              title: 'Website Design & Build',
+              desc: 'Custom sites built for speed, clarity, and conversion. No WordPress, no Squarespace - written in code, built to fit your business.',
+              tag: 'One-time',
+            },
+            {
+              title: 'Google Business Profile',
+              desc: 'Setup, optimization, and ongoing management of your GBP listing. More visibility in local search and Google Maps.',
+              tag: 'Retainer',
+            },
+            {
+              title: 'Google Ads Management',
+              desc: 'Local search campaigns that put you in front of customers actively looking for your service. Ad spend is paid directly to Google - my fee covers setup and ongoing management.',
+              tag: 'Retainer',
+            },
+            {
+              title: 'Maintenance & Updates',
+              desc: 'Site updates, content changes, and performance monitoring. You focus on the work - I keep the site current.',
+              tag: 'Retainer',
+            },
+          ].map(service => (
+            <div class="border border-slate-100 bg-slate-50 p-8">
+              <span class="text-xs uppercase tracking-widest font-bold text-amber-500 mb-3 block">
+                {service.tag}
+              </span>
+              <h3 class="text-lg font-black uppercase tracking-tight text-slate-900 mb-3">
+                {service.title}
+              </h3>
+              <p class="text-slate-500 text-sm leading-relaxed">
+                {service.desc}
+              </p>
+            </div>
+          ))}
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         HOW IT WORKS
+         Light section - simple, readable by anyone.
+    ====================================================================== -->
+    <section class="bg-slate-50 px-6 py-20 border-t border-slate-100">
+      <div class="max-w-4xl mx-auto">
+
+        <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">The process</p>
+        <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-4">How it works</h2>
+        <p class="text-slate-500 text-lg max-w-xl mb-12">
+          Submit a request, I handle it, you get confirmation. Simple as that.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              step: '01',
+              title: 'Submit a request',
+              desc: 'Need to update your hours, add photos, or fix something? Submit it through a simple form. No technical knowledge needed.',
+            },
+            {
+              step: '02',
+              title: 'I get to work',
+              desc: 'Your request goes into my queue. I handle it and let you know when it\'s done - usually same or next business day for small changes.',
+            },
+            {
+              step: '03',
+              title: 'Full history kept',
+              desc: 'Every change is logged. You always have a record of what was done and when - no mystery, no missing work.',
+            },
+          ].map(item => (
+            <div class="bg-white border border-slate-200 p-8">
+              <span class="text-4xl font-black text-amber-400 block mb-4">{item.step}</span>
+              <h3 class="text-base font-black uppercase tracking-tight text-slate-900 mb-3">{item.title}</h3>
+              <p class="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         WORK
+         Dark section again - alternating rhythm.
+    ====================================================================== -->
+    <section class="bg-slate-900 px-6 py-20">
+      <div class="max-w-4xl mx-auto">
+
+        <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-500 mb-2">Case studies</p>
+        <h2 class="text-4xl font-black uppercase tracking-tighter text-white mb-12">Work</h2>
+
+        <div class="space-y-6">
+
+          <!-- ArcWright -->
+          <div class="border border-slate-800 bg-slate-800/50 p-8 flex flex-col md:flex-row md:items-center gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3">
+                <span class="text-xs uppercase tracking-widest font-bold text-amber-400">Site Build</span>
+                <span class="text-slate-600 text-xs">·</span>
+                <span class="text-xs uppercase tracking-widest font-bold text-slate-500">2026</span>
+              </div>
+              <h3 class="text-xl font-black uppercase tracking-tight text-white mb-2">ArcWright Welding</h3>
+              <p class="text-slate-400 text-sm leading-relaxed max-w-lg">
+                Brand identity, site design, and build for a Jacksonville structural welding and fabrication company.
+                Fast-loading, mobile-first, with a Netlify contact form and custom animated SVG logo.
+              </p>
+            </div>
+            <a
+              href="https://arcwright.netlify.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="shrink-0 border border-slate-700 hover:border-amber-400 text-slate-400 hover:text-amber-400 text-xs font-bold uppercase tracking-widest px-6 py-3 transition-colors"
+            >
+              View Site →
+            </a>
+          </div>
+
+          <!-- Homestead -->
+          <div class="border border-slate-800 bg-slate-800/50 p-8 flex flex-col md:flex-row md:items-center gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3">
+                <span class="text-xs uppercase tracking-widest font-bold text-amber-400">Full-Stack Product</span>
+                <span class="text-slate-600 text-xs">·</span>
+                <span class="text-xs uppercase tracking-widest font-bold text-slate-500">2025 – Present</span>
+              </div>
+              <h3 class="text-xl font-black uppercase tracking-tight text-white mb-2">Homestead</h3>
+              <p class="text-slate-400 text-sm leading-relaxed max-w-lg">
+                A complete software platform built from scratch - marketplace, payments, smart contracts,
+                and a mobile app. Designed and built solo, end to end.
+              </p>
+            </div>
+            <span class="shrink-0 border border-slate-700 text-slate-600 text-xs font-bold uppercase tracking-widest px-6 py-3 cursor-default">
+              In Development
+            </span>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         PRICING
+         Firm numbers. No ranges, no haggling.
+    ====================================================================== -->
+    <section class="bg-white px-6 py-20 border-t border-slate-100">
+      <div class="max-w-4xl mx-auto">
+
+        <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">Transparent pricing</p>
+        <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-4">What it costs</h2>
+        <p class="text-slate-500 text-lg max-w-xl mb-12">
+          Flat rates. No surprises. Payment accepted in cash or cryptocurrency.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              label: 'One-time',
+              title: 'Site Build',
+              price: '$2,000',
+              unit: 'flat',
+              items: [
+                'Up to 5 pages',
+                'Mobile-first design',
+                'Contact form included',
+                '2 rounds of revisions',
+                'Deployed and handed off',
+              ],
+            },
+            {
+              label: 'Monthly',
+              title: 'Managed Presence',
+              price: '$400',
+              unit: 'per month',
+              items: [
+                'Google Business Profile',
+                'Google Ads management',
+                'Monthly performance report',
+                'Site updates included',
+                'Ad spend billed separately by Google',
+              ],
+            },
+            {
+              label: 'Hourly',
+              title: 'IT Support',
+              price: '$85',
+              unit: 'per hour',
+              items: [
+                'Networking & devices',
+                'Software setup & troubleshooting',
+                'On-site or remote',
+                'Billed in 1hr minimums',
+              ],
+            },
+          ].map(tier => (
+            <div class="border border-slate-200 p-8 flex flex-col">
+              <span class="text-xs uppercase tracking-widest font-bold text-amber-500 mb-4 block">{tier.label}</span>
+              <h3 class="text-lg font-black uppercase tracking-tight text-slate-900 mb-1">{tier.title}</h3>
+              <div class="flex items-baseline gap-2 mb-6">
+                <span class="text-4xl font-black text-slate-900">{tier.price}</span>
+                <span class="text-slate-400 text-sm">{tier.unit}</span>
+              </div>
+              <ul class="space-y-2 mt-auto">
+                {tier.items.map(item => (
+                  <li class="text-slate-500 text-sm flex items-start gap-2">
+                    <span class="text-amber-400 font-bold mt-0.5">+</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <p class="text-slate-400 text-xs mt-8">
+          Additional revisions beyond what's included are billed at the hourly IT rate.
+          Custom or complex projects quoted separately.
+        </p>
+
+        <div class="mt-6 border border-amber-200 bg-amber-50 px-6 py-5">
+          <p class="text-sm font-black uppercase tracking-widest text-amber-700 mb-1">Crypto payment - financing available</p>
+          <p class="text-slate-500 text-sm leading-relaxed">
+            Paying in cryptocurrency? Payment plans are available on all services.
+            Split any project into milestones - no bank, no interest.
+            Reach out to discuss terms.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         CONTACT
+         Light footer section - ends on an open, approachable note.
+    ====================================================================== -->
+    <section class="bg-white px-6 py-20 border-t border-slate-100">
+      <div class="max-w-4xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-10">
+
+        <div>
+          <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">Get in touch</p>
+          <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-6">
+            Let's work<br />together.
+          </h2>
+          <a
+            href="mailto:zenko18@gmail.com"
+            class="text-lg font-mono font-bold text-slate-700 hover:text-amber-500 transition-colors"
+          >
+            zenko18@gmail.com
+          </a>
+        </div>
+
+        <div class="text-right">
+          <p class="text-xs uppercase tracking-[0.2em] font-bold text-slate-300">
+            © {new Date().getFullYear()} Justin
+          </p>
+          <p class="text-xs text-slate-400 mt-1">Jacksonville, FL</p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+</Layout>

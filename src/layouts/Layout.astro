@@ -1,0 +1,62 @@
+---
+/*
+  THE FRONTMATTER BLOCK (between the --- fences)
+  This is the biggest visual difference from React. In React, you put
+  component logic inside the function body. In Astro, you put it up here.
+
+  Code in this block runs ONCE at build time on the server - never in the
+  browser. That means no useState, no useEffect, no event listeners here.
+  Think of it as the "setup" step before the HTML is written.
+
+  Props work the same way as React though:
+    React:  const Layout = ({ title, description }) => { ... }
+    Astro:  const { title, description } = Astro.props;
+*/
+
+import '../styles/global.css';
+
+// Astro.props is how you receive props - same concept as React props,
+// just accessed differently. TypeScript interface is optional but helpful.
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Web development and digital presence services.' } = Astro.props;
+---
+
+<!--
+  TEMPLATE SECTION (everything below the closing ---)
+  This is plain HTML - not JSX. A few differences from React:
+    - class="..." not className="..."
+    - No need to wrap everything in a single parent element
+    - <head> and <html> tags live here, not in a separate index.html
+-->
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+
+    <!--
+      {curly braces} work the same as in JSX - expressions, variables, etc.
+      The difference: this is evaluated at BUILD TIME, not at runtime in the browser.
+    -->
+    <title>{title}</title>
+
+    <link rel="icon" href="/favicon.ico" />
+  </head>
+
+  <body class="bg-white text-zinc-900 antialiased">
+
+    <!--
+      <slot /> is Astro's equivalent of {children} in React.
+      Whatever you put between <Layout>...</Layout> tags in a page
+      gets rendered here. Exact same concept, different keyword.
+    -->
+    <slot />
+
+  </body>
+</html>
