@@ -7,6 +7,24 @@ import OrderModal from '../components/OrderModal.jsx';
 
   <main>
 
+    <!--
+      Netlify detects forms at BUILD TIME by scanning static HTML.
+      Since our form lives inside a React component, Netlify never sees it.
+      This hidden form is the workaround - same field names, same form-name,
+      invisible to the user but visible to Netlify's build crawler.
+    -->
+    <form name="project-intake" netlify netlify-honeypot="bot-field" data-netlify="true" hidden>
+      <input type="hidden" name="form-name" value="project-intake" />
+      <input name="bot-field" />
+      <input name="name" />
+      <input name="email" />
+      <input name="phone" />
+      <input name="purpose" />
+      <input name="url" />
+      <textarea name="comments"></textarea>
+      <input type="file" name="file" />
+    </form>
+
     <!-- =====================================================================
          HERO
          Dark slate background, amber accent. Sets the tone immediately.

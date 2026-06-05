@@ -66,7 +66,20 @@ export default function OrderModal() {
     setSubmitted(false);
   };
 
-  const submit = () => setSubmitted(true);
+  const submit = async () => {
+    const data = new FormData();
+    data.append('form-name', 'project-intake');
+    data.append('name',     form.name);
+    data.append('email',    form.email);
+    data.append('phone',    form.phone);
+    data.append('purpose',  form.purpose);
+    data.append('url',      form.url);
+    data.append('comments', form.comments);
+    if (form.file) data.append('file', form.file);
+
+    await fetch('/', { method: 'POST', body: data });
+    setSubmitted(true);
+  };
 
   return (
     <>
