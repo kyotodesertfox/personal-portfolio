@@ -40,7 +40,9 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
     mapping(uint256  => mapping(uint256 => LineItem))        private _lineItems;
 
     bool    private _locked;
-    uint256[39] private __gap;
+    mapping(uint256 => uint256) public inquiryScopeCount;
+    mapping(uint256 => mapping(uint256 => bool)) public scopeItemCancelled;
+    uint256[37] private __gap;
 
     modifier nonReentrant() {
         require(!_locked, 'ClientLedger: REENTRANT');
@@ -62,6 +64,7 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         uint256 deposit;
         bool    accepted;
         bool    declined;
+        bool    readyForReview;
         uint256 projectId;
     }
 
@@ -92,6 +95,9 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
     }
 
     // Events
+    event ScopeItemRequested(uint256 indexed inquiryId, uint256 indexed itemId, string description, uint256 ethAmount);
+    event ScopeItemCancelled(uint256 indexed inquiryId, uint256 indexed itemId);
+    event InquiryReadyForReview(uint256 indexed inquiryId);
     event InquirySubmitted(uint256 indexed inquiryId, address indexed client, uint256 deposit);
     event InquiryAccepted(uint256 indexed inquiryId, uint256 indexed projectId);
     event InquiryDeclined(uint256 indexed inquiryId, address indexed client);
@@ -155,15 +161,16 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
 
         uint256 inquiryId = nextInquiryId++;
         _inquiries[inquiryId] = Inquiry({
-            client:    msg.sender,
-            deposit:   msg.value,
-            accepted:  false,
-            declined:  false,
-            projectId: 0
+            client:          msg.sender,
+            deposit:         msg.value,
+            accepted:        false,
+            declined:        false,
+            readyForReview:  false,
+            projectId:       0
         });
 
         if (debtToken != address(0)) {
-            IDebtToken(debtToken).mint(msg.sender, inquiryId, msg.value);
+            IDebtToken(debtToken).mint(msg.sender, inquiryId, 1);
         }
 
         emit InquirySubmitted(inquiryId, msg.sender, msg.value);
@@ -249,16 +256,50 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
 
         p.deposited += msg.value;
 
-        if (debtToken != address(0)) {
-            IDebtToken(debtToken).mint(msg.sender, p.inquiryId, msg.value);
-        }
-
         emit Deposited(projectId, msg.sender, msg.value);
     }
 
     // =========================================================================
     // LINE ITEMS
     // =========================================================================
+
+    // Client submits their desired scope items before the inquiry is accepted.
+    function requestScopeItem(
+        uint256 inquiryId,
+        string calldata description,
+        uint256 ethAmount
+    ) external nonReentrant whenNotPaused {
+        Inquiry storage inq = _inquiries[inquiryId];
+        require(inq.client == msg.sender,        'ClientLedger: NOT_CLIENT');
+        require(!inq.accepted && !inq.declined,  'ClientLedger: ALREADY_RESOLVED');
+        require(ethAmount > 0,                   'ClientLedger: ZERO_AMOUNT');
+        require(bytes(description).length > 0,   'ClientLedger: EMPTY_DESCRIPTION');
+
+        uint256 itemId = inquiryScopeCount[inquiryId]++;
+        emit ScopeItemRequested(inquiryId, itemId, description, ethAmount);
+    }
+
+    // Client cancels a previously requested scope item (pending inquiries only).
+    function cancelScopeItem(uint256 inquiryId, uint256 itemId) external nonReentrant {
+        Inquiry storage inq = _inquiries[inquiryId];
+        require(inq.client == msg.sender,        'ClientLedger: NOT_CLIENT');
+        require(!inq.accepted && !inq.declined,  'ClientLedger: ALREADY_RESOLVED');
+        require(itemId < inquiryScopeCount[inquiryId], 'ClientLedger: INVALID_ITEM');
+        require(!scopeItemCancelled[inquiryId][itemId], 'ClientLedger: ALREADY_CANCELLED');
+
+        scopeItemCancelled[inquiryId][itemId] = true;
+        emit ScopeItemCancelled(inquiryId, itemId);
+    }
+
+    // Client signals their scope buildout is complete and ready for admin review.
+    function markReadyForReview(uint256 inquiryId) external {
+        Inquiry storage inq = _inquiries[inquiryId];
+        require(inq.client == msg.sender,        'ClientLedger: NOT_CLIENT');
+        require(!inq.accepted && !inq.declined,  'ClientLedger: ALREADY_RESOLVED');
+        require(!inq.readyForReview,             'ClientLedger: ALREADY_READY');
+        inq.readyForReview = true;
+        emit InquiryReadyForReview(inquiryId);
+    }
 
     // Either party proposes a line item. The other must confirm before it is active.
     function proposeLineItem(
@@ -369,11 +410,6 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
             require(ok, 'ClientLedger: TRANSFER_FAILED');
         }
 
-        if (debtToken != address(0) && item.effectiveAmount > 0) {
-            uint256 bal = IDebtToken(debtToken).balanceOf(p.client, p.inquiryId);
-            if (bal > 0) IDebtToken(debtToken).burn(p.client, p.inquiryId, bal < item.effectiveAmount ? bal : item.effectiveAmount);
-        }
-
         emit LineItemReleased(projectId, itemId, ownerEth, fee);
     }
 
@@ -413,11 +449,6 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         item.removed  = true;
         p.allocated  -= item.effectiveAmount;
 
-        if (debtToken != address(0) && item.effectiveAmount > 0) {
-            uint256 bal = IDebtToken(debtToken).balanceOf(p.client, p.inquiryId);
-            if (bal > 0) IDebtToken(debtToken).burn(p.client, p.inquiryId, bal < item.effectiveAmount ? bal : item.effectiveAmount);
-        }
-
         emit LineItemRemoved(projectId, itemId);
     }
 
@@ -430,10 +461,11 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         uint256 depositAmount,
         bool    accepted,
         bool    declined,
-        uint256 projectId
+        uint256 projectId,
+        bool    readyForReview
     ) {
         Inquiry storage inq = _inquiries[inquiryId];
-        return (inq.client, inq.deposit, inq.accepted, inq.declined, inq.projectId);
+        return (inq.client, inq.deposit, inq.accepted, inq.declined, inq.projectId, inq.readyForReview);
     }
 
     function getProject(uint256 projectId) external view returns (

@@ -216,11 +216,11 @@
 			]
 		},
 		"ClientLedger.sol": {
-			"keccak256": "0x0d1af35e5ee0374757b4861f09615d61a04e5e2a8290c75fd14a7e6b6adcb09a",
+			"keccak256": "0x788e48618b745cf8dcb30204c2d0cc3981facf64ede95ddf16c3d396e0502aba",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://388625d26919e2547f1b7b376f17f1b8e49197d5f5643d84f16b43538c1f62b6",
-				"dweb:/ipfs/QmbrJb6CvtqQZdadgWQwQVuU9tv1TxpCA7WgVwzf2hJH7f"
+				"bzz-raw://04799f1697040098b770fc46318873bcc58ee18e0a71053d6772d25284848786",
+				"dweb:/ipfs/QmX8kaPNkXZG8SnZVmkVa1mQXXa4BADR8vtv3fkM5GZ42y"
 			]
 		}
 	},

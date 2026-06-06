@@ -15,8 +15,11 @@ contract DebtToken is ERC1155Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
     address public ledger;
 
     mapping(uint256 => uint256) public totalSupply;
+    mapping(uint256 => string)  private _tokenURIs;
+    string private _baseTokenURI;
 
     event LedgerUpdated(address indexed ledger);
+    event TokenURISet(uint256 indexed tokenId, string uri);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() { _disableInitializers(); }
@@ -51,6 +54,30 @@ contract DebtToken is ERC1155Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
 
     function safeBatchTransferFrom(address, address, uint256[] memory, uint256[] memory, bytes memory) public pure override {
         revert('DebtToken: SOULBOUND');
+    }
+
+    // Per-token URI overrides the base. Owner can update at any lifecycle stage.
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        string memory tokenURI = _tokenURIs[tokenId];
+        if (bytes(tokenURI).length > 0) return tokenURI;
+        return _baseTokenURI;
+    }
+
+    function setTokenURI(uint256 tokenId, string calldata tokenURI) external onlyOwner {
+        _tokenURIs[tokenId] = tokenURI;
+        emit TokenURISet(tokenId, tokenURI);
+    }
+
+    function setBaseURI(string calldata baseURI) external onlyOwner {
+        _baseTokenURI = baseURI;
+    }
+
+    // Holder can voluntarily burn their own token post-project as proof of closure.
+    function selfBurn(uint256 tokenId) external {
+        uint256 bal = balanceOf(msg.sender, tokenId);
+        require(bal > 0, 'DebtToken: NO_BALANCE');
+        totalSupply[tokenId] -= bal;
+        _burn(msg.sender, tokenId, bal);
     }
 
     function setLedger(address _ledger) external onlyOwner {

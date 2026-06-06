@@ -25,11 +25,12 @@ const ABI = [
   { name: 'getInquiry', type: 'function', stateMutability: 'view',
     inputs:  [{ name: 'inquiryId', type: 'uint256' }],
     outputs: [
-      { name: 'client',        type: 'address' },
-      { name: 'depositAmount', type: 'uint256' },
-      { name: 'accepted',      type: 'bool'    },
-      { name: 'declined',      type: 'bool'    },
-      { name: 'projectId',     type: 'uint256' },
+      { name: 'client',          type: 'address' },
+      { name: 'depositAmount',   type: 'uint256' },
+      { name: 'accepted',        type: 'bool'    },
+      { name: 'declined',        type: 'bool'    },
+      { name: 'projectId',       type: 'uint256' },
+      { name: 'readyForReview',  type: 'bool'    },
     ],
   },
   { name: 'acceptInquiry', type: 'function', stateMutability: 'nonpayable',
@@ -45,7 +46,7 @@ const ABI = [
 ];
 
 function InquiryCard({ id, data, refetch }) {
-  const [client, deposit, accepted, declined, projectId] = data;
+  const [client, deposit, accepted, declined, projectId, readyForReview] = data;
   const [accepting, setAccepting] = useState(false);
   const [desc,      setDesc]      = useState('');
   const [financed,  setFinanced]  = useState(false);
@@ -70,6 +71,7 @@ function InquiryCard({ id, data, refetch }) {
               status === 'accepted' ? 'text-green-600' : 'text-red-400'
             }`}>{status}</span>
             {accepted && <span className="text-xs text-slate-400 font-mono">Project #{projectId.toString()}</span>}
+            {!accepted && !declined && readyForReview && <span className="text-xs font-bold uppercase tracking-widest text-green-500">Ready for Review</span>}
           </div>
           <p className="font-mono text-sm text-slate-700 truncate">{client}</p>
           <p className="text-slate-400 text-xs mt-1">{formatEther(deposit)} ETH deposit</p>
@@ -182,7 +184,7 @@ function RegisterKeyPanel() {
 }
 
 function InquiryPopout({ id, data, refetch, onClose }) {
-  const [client, deposit, accepted, declined, projectId] = data;
+  const [client, deposit, accepted, declined, projectId, readyForReview] = data;
   const status = accepted ? 'accepted' : declined ? 'declined' : 'pending';
 
   return (
@@ -200,7 +202,7 @@ function InquiryPopout({ id, data, refetch, onClose }) {
           <button onClick={onClose} className="text-slate-400 hover:text-white text-lg font-bold transition-colors">✕</button>
         </div>
 
-        <ScopeBuilder projectId={accepted ? Number(projectId) : null} accepted={accepted} isAdmin />
+        <ScopeBuilder inquiryId={id} projectId={accepted ? Number(projectId) : null} accepted={accepted} isAdmin />
 
         <div className="px-6 py-2 border-b border-slate-100 shrink-0 flex items-center justify-center gap-4">
           <p className="text-lg font-black text-slate-900 shrink-0">{formatEther(deposit)} ETH</p>
@@ -224,7 +226,9 @@ function AdminInner() {
   const { address, isConnected } = useAccount();
   const { open: openWallet }     = useAppKit();
   const isOwner = isConnected && address?.toLowerCase() === OWNER.toLowerCase();
-  const [selected, setSelected]  = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [open, setOpen] = useState({ ready: true, pending: true, accepted: true, declined: false });
+  const toggleOpen = key => setOpen(v => ({ ...v, [key]: !v[key] }));
 
   const { data: nextId, refetch: refetchCount } = useReadContract({
     address: LEDGER, abi: ABI, functionName: 'nextInquiryId',
@@ -281,21 +285,62 @@ function AdminInner() {
 
         {count === 0 ? (
           <p className="text-slate-400 text-sm">No inquiries yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {inquiries?.map((result, i) =>
-              result?.status === 'success' ? (
-                <div
-                  key={i}
-                  onClick={() => setSelected({ id: i, data: result.result })}
-                  className="cursor-pointer hover:border-amber-400 hover:shadow-sm transition-all"
+        ) : (() => {
+          const ok = r => r?.status === 'success';
+          const idxOf = r => inquiries.indexOf(r);
+
+          const groups = {
+            ready:    inquiries?.filter(r => ok(r) && !r.result[2] && !r.result[3] &&  r.result[5]) ?? [],
+            pending:  inquiries?.filter(r => ok(r) && !r.result[2] && !r.result[3] && !r.result[5]) ?? [],
+            accepted: inquiries?.filter(r => ok(r) &&  r.result[2])                                 ?? [],
+            declined: inquiries?.filter(r => ok(r) && !r.result[2] &&  r.result[3])                 ?? [],
+          };
+
+          const labels = {
+            ready:    'Ready for Review',
+            pending:  'Pending',
+            accepted: 'Accepted',
+            declined: 'Declined',
+          };
+
+          const Section = ({ groupKey, dim }) => {
+            const items = groups[groupKey];
+            if (!items.length) return null;
+            return (
+              <div className="mt-8 first:mt-0">
+                <button
+                  onClick={() => toggleOpen(groupKey)}
+                  className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors mb-4"
                 >
-                  <InquiryCard id={i} data={result.result} refetch={refetch} />
-                </div>
-              ) : null
-            )}
-          </div>
-        )}
+                  <span>{open[groupKey] ? '▾' : '▸'}</span>
+                  <span>{labels[groupKey]} ({items.length})</span>
+                </button>
+                {open[groupKey] && (
+                  <div className={`space-y-4 ${dim ? 'opacity-50' : ''}`}>
+                    {items.map(result => (
+                      <div
+                        key={idxOf(result)}
+                        onClick={() => setSelected({ id: idxOf(result), data: result.result })}
+                        className={`cursor-pointer transition-all ${dim ? 'hover:opacity-75' : 'hover:border-amber-400 hover:shadow-sm'}`}
+                      >
+                        <InquiryCard id={idxOf(result)} data={result.result} refetch={refetch} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          return (
+            <>
+              <Section groupKey="ready" />
+              <Section groupKey="pending" />
+              <Section groupKey="accepted" />
+              <Section groupKey="declined" dim />
+            </>
+          );
+        })()}
       </div>
 
       {selected && (

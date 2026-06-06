@@ -267,6 +267,25 @@
 				"inputs": [
 					{
 						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "uri",
+						"type": "string"
+					}
+				],
+				"name": "TokenURISet",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
 						"internalType": "address",
 						"name": "operator",
 						"type": "address"
@@ -627,6 +646,19 @@
 			{
 				"inputs": [
 					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "selfBurn",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "address",
 						"name": "operator",
 						"type": "address"
@@ -645,12 +677,43 @@
 			{
 				"inputs": [
 					{
+						"internalType": "string",
+						"name": "baseURI",
+						"type": "string"
+					}
+				],
+				"name": "setBaseURI",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "address",
 						"name": "_ledger",
 						"type": "address"
 					}
 				],
 				"name": "setLedger",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "tokenURI",
+						"type": "string"
+					}
+				],
+				"name": "setTokenURI",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -728,7 +791,7 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
-						"name": "",
+						"name": "tokenId",
 						"type": "uint256"
 					}
 				],
@@ -913,9 +976,6 @@
 				"upgradeToAndCall(address,bytes)": {
 					"custom:oz-upgrades-unsafe-allow-reachable": "delegatecall",
 					"details": "Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call encoded in `data`. Calls {_authorizeUpgrade}. Emits an {Upgraded} event."
-				},
-				"uri(uint256)": {
-					"details": "See {IERC1155MetadataURI-uri}. This implementation returns the same URI for *all* token types. It relies on the token type ID substitution mechanism https://eips.ethereum.org/EIPS/eip-1155#metadata[defined in the ERC]. Clients calling this function must replace the `\\{id\\}` substring with the actual token type ID."
 				}
 			},
 			"version": 1
@@ -1159,11 +1219,11 @@
 			]
 		},
 		"DebtToken.sol": {
-			"keccak256": "0x3a0f61e8f937bc9d9ca47be70eeae1e2edda9efe025362a59c62ae8e09e1e027",
+			"keccak256": "0x8b4b7ea8a117af137b2d6866d3ebf1afb63c1f27d15fde53c1d25aad5080f8c1",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://5bfd92d87e43067096091d38dd2f11290e98bc4839c68380e65067ef8d6290ba",
-				"dweb:/ipfs/Qmdk9FuYCYkksntGyrqAQGcgEzBwqmL8684Mf3ch64C9hj"
+				"bzz-raw://19cdda0746a4be231f22d7e99ba8a1d734515da272a60e89962b62583e333a1c",
+				"dweb:/ipfs/QmVb3et7Z6wn9wT79mLpFk3DjkkaX1zhNojGoGQ7YEQuzD"
 			]
 		}
 	},

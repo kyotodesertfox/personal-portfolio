@@ -14,12 +14,16 @@ const ABI = [
   { name: 'getInquiry', type: 'function', stateMutability: 'view',
     inputs:  [{ name: 'inquiryId', type: 'uint256' }],
     outputs: [
-      { name: 'client',        type: 'address' },
-      { name: 'depositAmount', type: 'uint256' },
-      { name: 'accepted',      type: 'bool'    },
-      { name: 'declined',      type: 'bool'    },
-      { name: 'projectId',     type: 'uint256' },
+      { name: 'client',         type: 'address' },
+      { name: 'depositAmount',  type: 'uint256' },
+      { name: 'accepted',       type: 'bool'    },
+      { name: 'declined',       type: 'bool'    },
+      { name: 'projectId',      type: 'uint256' },
+      { name: 'readyForReview', type: 'bool'    },
     ],
+  },
+  { name: 'markReadyForReview', type: 'function', stateMutability: 'nonpayable',
+    inputs: [{ name: 'inquiryId', type: 'uint256' }], outputs: [],
   },
   { name: 'withdrawInquiry', type: 'function', stateMutability: 'nonpayable',
     inputs: [{ name: 'inquiryId', type: 'uint256' }], outputs: [],
@@ -63,9 +67,54 @@ function WithdrawButton({ id, refetch, onClose }) {
   );
 }
 
+function SubmitForReviewButton({ id, refetch }) {
+  const [confirming, setConfirming] = useState(false);
+  const { writeContract, isPending, data: txHash, reset } = useWriteContract();
+  const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  useEffect(() => { if (isSuccess) { refetch(); reset(); setConfirming(false); } }, [isSuccess]);
+
+  return (
+    <>
+      <button
+        onClick={() => setConfirming(true)}
+        className="bg-slate-900 hover:bg-slate-700 text-white font-black uppercase tracking-widest text-xs px-4 py-2 transition-colors"
+      >
+        Submit for Review
+      </button>
+
+      {confirming && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-slate-900/60" onClick={() => setConfirming(false)} />
+          <div className="relative bg-white shadow-2xl p-8 max-w-sm w-full mx-4">
+            <p className="text-sm font-black uppercase tracking-tight text-slate-900 mb-3">Are you sure?</p>
+            <p className="text-xs text-slate-500 leading-relaxed mb-6">
+              Once you submit for review your deposit can no longer be withdrawn. Make sure your build out is complete before continuing.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => writeContract({ address: LEDGER, abi: ABI, functionName: 'markReadyForReview', args: [BigInt(id)] })}
+                disabled={isPending}
+                className="flex-1 bg-slate-900 hover:bg-slate-700 text-white font-black uppercase tracking-widest text-xs py-3 transition-colors disabled:opacity-40"
+              >
+                {isPending ? 'Confirming...' : 'Confirm Submit'}
+              </button>
+              <button
+                onClick={() => setConfirming(false)}
+                className="flex-1 border border-slate-200 text-slate-500 hover:text-slate-900 font-bold uppercase tracking-widest text-xs py-3 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function InquiryPopout({ inquiry, address, refetch, onClose }) {
   const { id, result } = inquiry;
-  const [, deposit, accepted, declined, projectId] = result;
+  const [, deposit, accepted, declined, projectId, readyForReview] = result;
   const status = accepted ? 'accepted' : declined ? 'declined' : 'pending';
 
   return (
@@ -83,7 +132,7 @@ function InquiryPopout({ inquiry, address, refetch, onClose }) {
           <button onClick={onClose} className="text-slate-400 hover:text-white text-lg font-bold transition-colors">✕</button>
         </div>
 
-        <ScopeBuilder projectId={accepted ? Number(projectId) : null} accepted={accepted} isAdmin={false} />
+        <ScopeBuilder inquiryId={id} projectId={accepted ? Number(projectId) : null} accepted={accepted} isAdmin={false} />
 
         <div className="px-6 py-2 border-b border-slate-100 shrink-0 flex items-center justify-center gap-4">
           <p className="text-lg font-black text-slate-900">{formatEther(deposit)} ETH</p>
@@ -92,7 +141,12 @@ function InquiryPopout({ inquiry, address, refetch, onClose }) {
             {status === 'accepted' && `Project #${projectId.toString()} opened — deposit applied`}
             {status === 'declined' && 'Deposit returned to your wallet'}
           </p>
-          {status === 'pending' && <WithdrawButton id={id} refetch={refetch} onClose={onClose} />}
+          {status === 'pending' && !readyForReview && <WithdrawButton id={id} refetch={refetch} onClose={onClose} />}
+          {status === 'pending' && (
+            readyForReview
+              ? <span className="text-xs font-bold uppercase tracking-widest text-green-600">Submitted for Review</span>
+              : <SubmitForReviewButton id={id} refetch={refetch} />
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -107,7 +161,7 @@ function ClientInner() {
   const { address, isConnected } = useAccount();
   const { open: openWallet }     = useAppKit();
   const { disconnect }           = useDisconnect();
-  const [selected, setSelected]  = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const { data: nextId, refetch: refetchCount } = useReadContract({
     address: LEDGER, abi: ABI, functionName: 'nextInquiryId',
@@ -166,13 +220,13 @@ function ClientInner() {
         ) : (
           <div className="space-y-4">
             {myInquiries.map((inquiry) => {
-              const [, deposit, accepted, declined] = inquiry.result;
+              const [, deposit, accepted, declined,, readyForReview] = inquiry.result;
               const status = accepted ? 'accepted' : declined ? 'declined' : 'pending';
 
               return (
                 <div
                   key={inquiry.id}
-                  onClick={() => setSelected(inquiry)}
+                  onClick={() => setSelectedId(inquiry.id)}
                   className="border border-slate-200 bg-white p-6 cursor-pointer hover:border-amber-400 hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center justify-between">
@@ -183,6 +237,7 @@ function ClientInner() {
                           status === 'pending'  ? 'text-amber-500' :
                           status === 'accepted' ? 'text-green-600' : 'text-red-400'
                         }`}>{status}</span>
+                        {status === 'pending' && readyForReview && <span className="text-xs font-bold uppercase tracking-widest text-green-500">Submitted for Review</span>}
                       </div>
                       <p className="text-2xl font-black text-slate-900">{formatEther(deposit)} ETH</p>
                     </div>
@@ -195,14 +250,17 @@ function ClientInner() {
         )}
       </div>
 
-      {selected && (
-        <InquiryPopout
-          inquiry={selected}
-          address={address}
-          refetch={refetch}
-          onClose={() => setSelected(null)}
-        />
-      )}
+      {selectedId != null && (() => {
+        const live = myInquiries.find(r => r.id === selectedId);
+        return live ? (
+          <InquiryPopout
+            inquiry={live}
+            address={address}
+            refetch={refetch}
+            onClose={() => setSelectedId(null)}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }
