@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import OrderModal from '../components/OrderModal.jsx';
+import PricingSection from '../components/PricingSection.jsx';
 ---
 
 <Layout title="Justin - IT & Web | Jacksonville, FL">
@@ -16,6 +17,7 @@ import OrderModal from '../components/OrderModal.jsx';
     <form name="project-intake" netlify netlify-honeypot="bot-field" data-netlify="true" hidden>
       <input type="hidden" name="form-name" value="project-intake" />
       <input name="bot-field" />
+      <input name="wallet" />
       <input name="name" />
       <input name="email" />
       <input name="phone" />
@@ -33,12 +35,12 @@ import OrderModal from '../components/OrderModal.jsx';
       <div class="max-w-4xl mx-auto">
 
         <p class="text-amber-400 text-sm uppercase tracking-[0.25em] font-bold mb-6">
-          Jacksonville, FL - Local. Independent.
+          Jacksonville, FL - Local + Independent
         </p>
 
         <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white leading-none mb-8">
-          Your IT &amp; Web guy.<br />
-          <span class="text-amber-400">Not an agency.</span>
+          Your IT &amp; Web Guy<br />
+          <span class="text-amber-400">Not a vendor</span>
         </h1>
 
         <p class="text-slate-400 text-lg md:text-xl max-w-xl leading-relaxed mb-12">
@@ -54,10 +56,10 @@ import OrderModal from '../components/OrderModal.jsx';
           -->
           <OrderModal client:load />
           <a
-            href="tel:+19045551234"
+            href="tel:+17162289418"
             class="inline-block border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-400 font-bold uppercase tracking-widest text-sm px-8 py-4 transition-colors"
           >
-            904-XXX-XXXX
+            716.228.9418
           </a>
         </div>
 
@@ -131,25 +133,25 @@ import OrderModal from '../components/OrderModal.jsx';
         <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">The process</p>
         <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-4">How it works</h2>
         <p class="text-slate-500 text-lg max-w-xl mb-12">
-          Submit a request, I handle it, you get confirmation. Simple as that.
+          Every project runs through a smart contract. Scope is agreed on-chain, funds are escrowed, and ETH releases only as work is confirmed done - no disputes, no he-said-she-said.
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
               step: '01',
-              title: 'Submit a request',
-              desc: 'Need to update your hours, add photos, or fix something? Submit it through a simple form. No technical knowledge needed.',
+              title: 'Agree on scope',
+              desc: 'Submit your request. I price it out and build a line-by-line work order. Both wallets sign before any ETH moves - the contract is the agreement.',
             },
             {
               step: '02',
-              title: 'I get to work',
-              desc: 'Your request goes into my queue. I handle it and let you know when it\'s done - usually same or next business day for small changes.',
+              title: 'Fund the escrow',
+              desc: 'Deposit ETH into the smart contract. It stays locked - inaccessible to either party - until each milestone is confirmed complete. Pay all at once or in installments.',
             },
             {
               step: '03',
-              title: 'Full history kept',
-              desc: 'Every change is logged. You always have a record of what was done and when - no mystery, no missing work.',
+              title: 'Sign off as work is done',
+              desc: 'I complete each item. You confirm it. ETH releases per milestone. Every step is permanent, timestamped, and on-chain - no ambiguity about what was delivered.',
             },
           ].map(item => (
             <div class="bg-white border border-slate-200 p-8">
@@ -159,6 +161,10 @@ import OrderModal from '../components/OrderModal.jsx';
             </div>
           ))}
         </div>
+
+        <p class="text-slate-400 text-xs mt-8">
+          Prefer cash? Available on request - though cash projects don't carry escrow protection for either party.
+        </p>
 
       </div>
     </section>
@@ -235,65 +241,7 @@ import OrderModal from '../components/OrderModal.jsx';
           Flat rates. No surprises. Payment accepted in cash or cryptocurrency.
         </p>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              label: 'One-time',
-              title: 'Site Build',
-              price: '$2,000',
-              unit: 'flat',
-              items: [
-                'Up to 5 pages',
-                'Mobile-first design',
-                'Contact form included',
-                '2 rounds of revisions',
-                'Deployed and handed off',
-              ],
-            },
-            {
-              label: 'Monthly',
-              title: 'Managed Presence',
-              price: '$400',
-              unit: 'per month',
-              items: [
-                'Google Business Profile',
-                'Google Ads management',
-                'Monthly performance report',
-                'Site updates included',
-                'Ad spend billed separately by Google',
-              ],
-            },
-            {
-              label: 'Hourly',
-              title: 'IT Support',
-              price: '$85',
-              unit: 'per hour',
-              items: [
-                'Networking & devices',
-                'Software setup & troubleshooting',
-                'On-site or remote',
-                'Billed in 1hr minimums',
-              ],
-            },
-          ].map(tier => (
-            <div class="border border-slate-200 p-8 flex flex-col">
-              <span class="text-xs uppercase tracking-widest font-bold text-amber-500 mb-4 block">{tier.label}</span>
-              <h3 class="text-lg font-black uppercase tracking-tight text-slate-900 mb-1">{tier.title}</h3>
-              <div class="flex items-baseline gap-2 mb-6">
-                <span class="text-4xl font-black text-slate-900">{tier.price}</span>
-                <span class="text-slate-400 text-sm">{tier.unit}</span>
-              </div>
-              <ul class="space-y-2 mt-auto">
-                {tier.items.map(item => (
-                  <li class="text-slate-500 text-sm flex items-start gap-2">
-                    <span class="text-amber-400 font-bold mt-0.5">+</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+        <PricingSection client:load />
 
         <p class="text-slate-400 text-xs mt-8">
           Additional revisions beyond what's included are billed at the hourly IT rate.

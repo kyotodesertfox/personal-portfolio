@@ -12,7 +12,10 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ['tweetnacl'],
+    },
   },
 
   integrations: [react()]

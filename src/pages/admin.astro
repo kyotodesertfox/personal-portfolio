@@ -1,0 +1,9 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AdminDashboard from '../components/AdminDashboard.jsx';
+---
+
+<Layout title="Admin">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <AdminDashboard client:load />
+</Layout>
