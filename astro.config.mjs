@@ -7,6 +7,8 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://jax-web-services.netlify.app',
+
   server: {
     host: true,
   },

@@ -34,7 +34,7 @@ createAppKit({
   networks,
   projectId,
   metadata: {
-    name: 'Justin - IT & Web',
+    name: 'IT & Web Guy',
     description: 'Local IT & web services. Jacksonville, FL.',
     url: typeof window !== 'undefined' ? window.location.origin : '',
     icons: []

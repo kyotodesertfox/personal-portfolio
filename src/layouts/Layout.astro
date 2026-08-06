@@ -20,9 +20,18 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  image?: string;
 }
 
-const { title, description = 'Web development and digital presence services.' } = Astro.props;
+const {
+  title,
+  description = 'Web development and digital presence services.',
+  image = '/og-image.png',
+} = Astro.props;
+
+const siteName    = 'IT & Web Guy';
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://jax-web-services.netlify.app');
+const imageURL      = new URL(image, Astro.site ?? 'https://jax-web-services.netlify.app');
 ---
 
 <!--
@@ -45,8 +54,26 @@ const { title, description = 'Web development and digital presence services.' } 
       The difference: this is evaluated at BUILD TIME, not at runtime in the browser.
     -->
     <title>{title}</title>
+    <link rel="canonical" href={canonicalURL} />
 
     <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={imageURL} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageURL} />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-N7YKK2BLKQ"></script>
