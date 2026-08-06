@@ -526,6 +526,16 @@
 						"internalType": "bool",
 						"name": "financed",
 						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "discountBps",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "discountFlat",
+						"type": "uint256"
 					}
 				],
 				"name": "acceptInquiry",
@@ -1525,11 +1535,11 @@
 			]
 		},
 		"ClientLedger.sol": {
-			"keccak256": "0x788e48618b745cf8dcb30204c2d0cc3981facf64ede95ddf16c3d396e0502aba",
+			"keccak256": "0x2840e62882d57fafa7c4ed1171f0713721293775cf6e17a5747ef6bcdaa8def5",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://04799f1697040098b770fc46318873bcc58ee18e0a71053d6772d25284848786",
-				"dweb:/ipfs/QmX8kaPNkXZG8SnZVmkVa1mQXXa4BADR8vtv3fkM5GZ42y"
+				"bzz-raw://6e8e6e2567304d4be6331a5c10b3c60bc2a5624de2756460eb2dbc1cf1933d0f",
+				"dweb:/ipfs/QmdLkbswwJXYHe3f86CxbUQLva6wbTihX1uBTbqh8ptdV6"
 			]
 		}
 	},

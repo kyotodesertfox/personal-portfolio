@@ -8,7 +8,8 @@ import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 // ClientLedger - milestone escrow + client profiles for IT/web services.
 //
 // Lifecycle:
-//   Client submits inquiry (0.1 ETH deposit) -> owner accepts -> project opens
+//   Client submits inquiry (0.1 ETH deposit) -> owner accepts with discounts
+//   Client reviews terms and activates (elects pay-in-full or finance)
 //   Owner and client propose/confirm line items (scope agreement, both sign)
 //   Client deposits ETH to cover active items
 //   Work done -> both sign off -> ETH releases per item
@@ -72,18 +73,21 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         address client;
         string  description;
         uint256 inquiryId;
-        uint256 deposited;   // total ETH in contract for this project
-        uint256 allocated;   // locked to active line items
-        uint256 released;    // paid out to owner
-        bool    financed;    // true = DebtToken minted per item
+        uint256 deposited;    // total ETH in contract for this project
+        uint256 allocated;    // locked to active line items
+        uint256 released;     // paid out to owner
+        bool    financed;     // true = pay-as-you-go; false = paid in full upfront
         uint256 lineItemCount;
         bool    cancelled;
+        uint256 discountBps;  // percentage discount applied to each line item (basis points)
+        uint256 discountFlat; // flat ETH discount pool, consumed as line items are confirmed
+        bool    activated;    // client has reviewed terms and elected to proceed
     }
 
     struct LineItem {
         string  description;
         uint256 ethAmount;        // original quoted amount
-        uint256 effectiveAmount;  // after referral credits applied at confirm time
+        uint256 effectiveAmount;  // after discounts and referral credits applied at confirm time
         bool    proposedByOwner;
         bool    active;           // both parties agreed on scope; funds allocated
         bool    ownerDone;
@@ -101,7 +105,10 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
     event InquirySubmitted(uint256 indexed inquiryId, address indexed client, uint256 deposit);
     event InquiryAccepted(uint256 indexed inquiryId, uint256 indexed projectId);
     event InquiryDeclined(uint256 indexed inquiryId, address indexed client);
+    event ProjectActivated(uint256 indexed projectId, address indexed client, bool financed);
     event Deposited(uint256 indexed projectId, address indexed client, uint256 amount);
+    event DiscountAdded(uint256 indexed projectId, uint256 amount);
+    event ProjectCancelled(uint256 indexed projectId, uint256 refunded);
     event LineItemProposed(uint256 indexed projectId, uint256 indexed itemId, string description, uint256 ethAmount);
     event LineItemConfirmed(uint256 indexed projectId, uint256 indexed itemId, uint256 effectiveAmount);
     event WorkConfirmed(uint256 indexed projectId, uint256 indexed itemId, address confirmedBy);
@@ -150,8 +157,6 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
     // INQUIRY LIFECYCLE
     // =========================================================================
 
-    // Client submits 0.1 ETH deposit to open an inquiry. Auto-registers wallet.
-    // Mints DebtTokens equal to the deposit - tokenId is the inquiryId, used throughout the project lifecycle.
     function submitInquiry() external payable nonReentrant whenNotPaused {
         require(msg.value == inquiryDeposit, 'ClientLedger: WRONG_DEPOSIT');
 
@@ -176,12 +181,15 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         emit InquirySubmitted(inquiryId, msg.sender, msg.value);
     }
 
-    // Owner accepts inquiry - opens a project, inquiry deposit credited as first deposit.
+    // Owner accepts inquiry and sets terms. Project is created but not yet active —
+    // client must call activateProject to elect payment method and begin work.
     function acceptInquiry(
         uint256 inquiryId,
         string calldata description,
-        bool financed
+        uint256 discountBps,
+        uint256 discountFlat
     ) external onlyOwner nonReentrant {
+        require(discountBps <= 10000, 'ClientLedger: INVALID_BPS');
         Inquiry storage inq = _inquiries[inquiryId];
         require(inq.client != address(0),       'ClientLedger: NOT_FOUND');
         require(!inq.accepted && !inq.declined,  'ClientLedger: ALREADY_RESOLVED');
@@ -197,12 +205,36 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
             deposited:     inq.deposit,
             allocated:     0,
             released:      0,
-            financed:      financed,
+            financed:      false,
             lineItemCount: 0,
-            cancelled:     false
+            cancelled:     false,
+            discountBps:   discountBps,
+            discountFlat:  discountFlat,
+            activated:     false
         });
 
         emit InquiryAccepted(inquiryId, projectId);
+    }
+
+    // Client reviews accepted terms and elects to proceed.
+    // payInFull=true: client sends ETH to cover their estimated total upfront (financed=false).
+    // payInFull=false: client proceeds with retainer only, billed per line item (financed=true).
+    // Any ETH sent is credited to the project regardless of payInFull flag.
+    function activateProject(uint256 projectId, bool payInFull) external payable nonReentrant whenNotPaused {
+        Project storage p = _projects[projectId];
+        require(p.client == msg.sender,  'ClientLedger: NOT_CLIENT');
+        require(!p.activated,            'ClientLedger: ALREADY_ACTIVATED');
+        require(!p.cancelled,            'ClientLedger: CANCELLED');
+
+        p.financed  = !payInFull;
+        p.activated = true;
+
+        if (msg.value > 0) {
+            p.deposited += msg.value;
+            emit Deposited(projectId, msg.sender, msg.value);
+        }
+
+        emit ProjectActivated(projectId, msg.sender, p.financed);
     }
 
     // Client withdraws their own pending inquiry - deposit refunded, tokens burned.
@@ -251,6 +283,7 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         Project storage p = _projects[projectId];
         require(p.client != address(0),  'ClientLedger: NOT_FOUND');
         require(msg.sender == p.client,  'ClientLedger: NOT_CLIENT');
+        require(p.activated,             'ClientLedger: NOT_ACTIVATED');
         require(!p.cancelled,            'ClientLedger: CANCELLED');
         require(msg.value > 0,           'ClientLedger: ZERO_AMOUNT');
 
@@ -259,11 +292,41 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         emit Deposited(projectId, msg.sender, msg.value);
     }
 
+    // Owner adds to the flat discount pool post-acceptance (e.g. to unwind a deliverable
+    // that couldn't be completed). Future line item confirmations draw from this pool.
+    function addDiscountFlat(uint256 projectId, uint256 amount) external onlyOwner {
+        Project storage p = _projects[projectId];
+        require(p.client != address(0), 'ClientLedger: NOT_FOUND');
+        require(!p.cancelled,           'ClientLedger: CANCELLED');
+
+        p.discountFlat += amount;
+
+        emit DiscountAdded(projectId, amount);
+    }
+
+    // Owner cancels an active project. Refunds all deposited ETH minus what has already
+    // been released to the owner. No line items may be active (allocated must be zero).
+    function cancelProject(uint256 projectId) external onlyOwner nonReentrant {
+        Project storage p = _projects[projectId];
+        require(p.client != address(0), 'ClientLedger: NOT_FOUND');
+        require(!p.cancelled,           'ClientLedger: ALREADY_CANCELLED');
+        require(p.allocated == 0,       'ClientLedger: ITEMS_ACTIVE');
+
+        p.cancelled = true;
+
+        uint256 refund = p.deposited - p.released;
+        if (refund > 0) {
+            (bool ok,) = p.client.call{value: refund}("");
+            require(ok, 'ClientLedger: REFUND_FAILED');
+        }
+
+        emit ProjectCancelled(projectId, refund);
+    }
+
     // =========================================================================
     // LINE ITEMS
     // =========================================================================
 
-    // Client submits their desired scope items before the inquiry is accepted.
     function requestScopeItem(
         uint256 inquiryId,
         string calldata description,
@@ -279,7 +342,6 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         emit ScopeItemRequested(inquiryId, itemId, description, ethAmount);
     }
 
-    // Client cancels a previously requested scope item (pending inquiries only).
     function cancelScopeItem(uint256 inquiryId, uint256 itemId) external nonReentrant {
         Inquiry storage inq = _inquiries[inquiryId];
         require(inq.client == msg.sender,        'ClientLedger: NOT_CLIENT');
@@ -291,7 +353,6 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         emit ScopeItemCancelled(inquiryId, itemId);
     }
 
-    // Client signals their scope buildout is complete and ready for admin review.
     function markReadyForReview(uint256 inquiryId) external {
         Inquiry storage inq = _inquiries[inquiryId];
         require(inq.client == msg.sender,        'ClientLedger: NOT_CLIENT');
@@ -301,7 +362,7 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         emit InquiryReadyForReview(inquiryId);
     }
 
-    // Either party proposes a line item. The other must confirm before it is active.
+    // Either party proposes a line item. Project must be activated by client first.
     function proposeLineItem(
         uint256 projectId,
         string calldata description,
@@ -309,6 +370,7 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
     ) external nonReentrant whenNotPaused {
         Project storage p = _projects[projectId];
         require(p.client != address(0),                                   'ClientLedger: NOT_FOUND');
+        require(p.activated,                                              'ClientLedger: NOT_ACTIVATED');
         require(!p.cancelled,                                             'ClientLedger: CANCELLED');
         require(msg.sender == owner() || msg.sender == p.client,         'ClientLedger: NOT_PARTY');
         require(ethAmount > 0,                                            'ClientLedger: ZERO_AMOUNT');
@@ -332,12 +394,14 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         emit LineItemProposed(projectId, itemId, description, ethAmount);
     }
 
-    // Counterparty of the proposer confirms scope. Applies referral credits and allocates funds.
+    // Counterparty of the proposer confirms scope. Applies discounts and referral credits,
+    // then allocates funds. Project must be activated.
     function confirmLineItem(uint256 projectId, uint256 itemId) external nonReentrant whenNotPaused {
         Project storage p    = _projects[projectId];
         LineItem storage item = _lineItems[projectId][itemId];
 
         require(p.client != address(0),          'ClientLedger: NOT_FOUND');
+        require(p.activated,                     'ClientLedger: NOT_ACTIVATED');
         require(!p.cancelled,                    'ClientLedger: CANCELLED');
         require(!item.active && !item.removed,   'ClientLedger: INVALID_STATE');
         require(item.ethAmount > 0,              'ClientLedger: ITEM_NOT_FOUND');
@@ -348,10 +412,20 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
             require(msg.sender == owner(),  'ClientLedger: NOT_OWNER');
         }
 
-        // Apply referral credits - reduces how much of the deposited balance is consumed
+        // Apply percentage discount first
+        uint256 afterBps = p.discountBps > 0
+            ? item.ethAmount - (item.ethAmount * p.discountBps / 10000)
+            : item.ethAmount;
+
+        // Apply flat discount pool
+        uint256 flatUsed = p.discountFlat >= afterBps ? afterBps : p.discountFlat;
+        p.discountFlat  -= flatUsed;
+        uint256 afterFlat = afterBps - flatUsed;
+
+        // Apply referral credits
         uint256 credits     = clientProfiles[p.client].referralCredits;
-        uint256 creditsUsed = credits >= item.ethAmount ? item.ethAmount : credits;
-        uint256 effective   = item.ethAmount - creditsUsed;
+        uint256 creditsUsed = credits >= afterFlat ? afterFlat : credits;
+        uint256 effective   = afterFlat - creditsUsed;
 
         require(p.deposited - p.allocated >= effective, 'ClientLedger: INSUFFICIENT_FUNDS');
 
@@ -363,7 +437,6 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         emit LineItemConfirmed(projectId, itemId, effective);
     }
 
-    // Either party confirms work is done on an active item. Release fires when both confirm.
     function confirmWorkDone(uint256 projectId, uint256 itemId) external nonReentrant whenNotPaused {
         Project storage p    = _projects[projectId];
         LineItem storage item = _lineItems[projectId][itemId];
@@ -471,11 +544,15 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
     function getProject(uint256 projectId) external view returns (
         address client,
         string memory description,
+        uint256 inquiryId,
         uint256 deposited,
         uint256 allocated,
         uint256 released,
         uint256 available,
         bool    financed,
+        bool    activated,
+        uint256 discountBps,
+        uint256 discountFlat,
         uint256 lineItemCount,
         bool    cancelled
     ) {
@@ -483,11 +560,15 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         return (
             p.client,
             p.description,
+            p.inquiryId,
             p.deposited,
             p.allocated,
             p.released,
             p.deposited - p.allocated,
             p.financed,
+            p.activated,
+            p.discountBps,
+            p.discountFlat,
             p.lineItemCount,
             p.cancelled
         );
@@ -497,6 +578,7 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
         string memory description,
         uint256 ethAmount,
         uint256 effectiveAmount,
+        bool    proposedByOwner,
         bool    active,
         bool    ownerDone,
         bool    clientDone,
@@ -509,6 +591,7 @@ contract ClientLedger is UUPSUpgradeable, OwnableUpgradeable, PausableUpgradeabl
             item.description,
             item.ethAmount,
             item.effectiveAmount,
+            item.proposedByOwner,
             item.active,
             item.ownerDone,
             item.clientDone,

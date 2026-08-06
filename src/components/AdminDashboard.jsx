@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
-import { formatEther, keccak256 } from 'viem';
+import { formatEther, parseEther, keccak256 } from 'viem';
 import nacl from 'tweetnacl';
 import { WalletProvider } from './WalletProvider.jsx';
 import ChatPanel from './ChatPanel.jsx';
@@ -35,9 +35,11 @@ const ABI = [
   },
   { name: 'acceptInquiry', type: 'function', stateMutability: 'nonpayable',
     inputs: [
-      { name: 'inquiryId',   type: 'uint256' },
-      { name: 'description', type: 'string'  },
-      { name: 'financed',    type: 'bool'    },
+      { name: 'inquiryId',    type: 'uint256' },
+      { name: 'description',  type: 'string'  },
+      { name: 'financed',     type: 'bool'    },
+      { name: 'discountBps',  type: 'uint256' },
+      { name: 'discountFlat', type: 'uint256' },
     ], outputs: [],
   },
   { name: 'declineInquiry', type: 'function', stateMutability: 'nonpayable',
@@ -47,15 +49,16 @@ const ABI = [
 
 function InquiryCard({ id, data, refetch }) {
   const [client, deposit, accepted, declined, projectId, readyForReview] = data;
-  const [accepting, setAccepting] = useState(false);
-  const [desc,      setDesc]      = useState('');
-  const [financed,  setFinanced]  = useState(false);
+  const [accepting,     setAccepting]     = useState(false);
+  const [desc,          setDesc]          = useState('');
+  const [discountPct,   setDiscountPct]   = useState('');
+  const [discountFlat,  setDiscountFlat]  = useState('');
 
   const { writeContract, isPending, data: txHash, reset } = useWriteContract();
   const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
   useEffect(() => {
-    if (isSuccess) { refetch(); reset(); setAccepting(false); setDesc(''); setFinanced(false); }
+    if (isSuccess) { refetch(); reset(); setAccepting(false); setDesc(''); setDiscountPct(''); setDiscountFlat(''); }
   }, [isSuccess]);
 
   const status = accepted ? 'accepted' : declined ? 'declined' : 'pending';
@@ -105,20 +108,45 @@ function InquiryCard({ id, data, refetch }) {
             value={desc}
             onChange={e => setDesc(e.target.value)}
           />
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={financed} onChange={e => setFinanced(e.target.checked)} className="accent-amber-400" />
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Financed (mint DebtTokens per line item)</span>
-          </label>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Discount %</p>
+              <input
+                type="number" min="0" max="100" step="0.1"
+                value={discountPct} onChange={e => setDiscountPct(e.target.value)}
+                placeholder="0"
+                className="w-full border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
+              />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Flat Discount (ETH)</p>
+              <input
+                type="number" min="0" step="0.001"
+                value={discountFlat} onChange={e => setDiscountFlat(e.target.value)}
+                placeholder="0.00"
+                className="w-full border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
+              />
+            </div>
+          </div>
           <div className="flex gap-2 items-center">
             <button
-              onClick={() => writeContract({ address: LEDGER, abi: ABI, functionName: 'acceptInquiry', args: [BigInt(id), desc, financed] })}
+              onClick={() => writeContract({
+                address: LEDGER, abi: ABI, functionName: 'acceptInquiry',
+                args: [
+                  BigInt(id),
+                  desc,
+                  false,
+                  BigInt(Math.round((parseFloat(discountPct) || 0) * 100)),
+                  parseEther(discountFlat || '0'),
+                ],
+              })}
               disabled={!desc.trim() || isPending}
               className="bg-slate-900 hover:bg-slate-700 text-white font-black uppercase tracking-widest text-xs px-6 py-3 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {isPending ? 'Confirming...' : 'Confirm Accept'}
             </button>
             <button
-              onClick={() => { setAccepting(false); setDesc(''); setFinanced(false); }}
+              onClick={() => { setAccepting(false); setDesc(''); setDiscountPct(''); setDiscountFlat(''); }}
               className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors"
             >
               Cancel
