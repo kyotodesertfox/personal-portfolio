@@ -4,7 +4,6 @@ const tiers = [
   {
     label: 'One-time',
     title: 'Site Build',
-    cashPrice: '$2,000',
     cryptoPrice: '1 ETH',
     cryptoEth: 1,
     unit: 'flat',
@@ -19,7 +18,6 @@ const tiers = [
   {
     label: 'Monthly',
     title: 'Managed Presence',
-    cashPrice: '$400',
     cryptoPrice: '0.2 ETH',
     cryptoEth: 0.2,
     unit: 'per month',
@@ -34,7 +32,6 @@ const tiers = [
   {
     label: 'Hourly',
     title: 'IT Support',
-    cashPrice: '$85',
     cryptoPrice: '0.03 ETH',
     cryptoEth: 0.03,
     unit: 'per hour',
@@ -47,56 +44,8 @@ const tiers = [
   },
 ];
 
-function DepositButton() {
-  const { address, isConnected } = useAccount();
-  const { open: openWallet }     = useAppKit();
-  const { data: txHash, writeContract, isPending, error: txError, reset } = useWriteContract();
-  const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
-
-  if (txConfirmed) {
-    return (
-      <div className="mt-6 pt-6 border-t border-slate-100">
-        <p className="text-xs font-black uppercase tracking-widest text-amber-500">Deposit Confirmed</p>
-        <p className="text-slate-400 text-xs mt-1">You're in the queue. I'll reach out within one business day.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
-      <p className="text-xs uppercase tracking-widest font-bold text-slate-400">Secure Your Spot</p>
-      <p className="text-slate-500 text-xs leading-relaxed">
-        0.1 ETH refundable deposit. Applied to your balance if we move forward - returned in full if we don't.
-      </p>
-
-      {!isConnected ? (
-        <button
-          onClick={() => openWallet()}
-          className="w-full border border-amber-400 text-amber-500 hover:bg-amber-50 font-black uppercase tracking-widest text-xs px-4 py-3 transition-colors"
-        >
-          Connect Wallet
-        </button>
-      ) : (
-        <div className="space-y-2">
-          <p className="text-xs font-mono text-slate-400 truncate">{address}</p>
-          {txError && <p className="text-red-400 text-xs">Transaction failed - try again.</p>}
-          <button
-            onClick={() => writeContract({ address: CLIENT_LEDGER, abi: LEDGER_ABI, functionName: 'submitInquiry', value: INQUIRY_DEPOSIT })}
-            disabled={isPending || !!txHash}
-            className="w-full bg-amber-400 hover:bg-amber-300 text-slate-900 font-black uppercase tracking-widest text-xs px-4 py-3 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {isPending             ? 'Confirm in Wallet...' :
-             txHash && !txConfirmed ? 'Confirming...'        :
-             'Submit Deposit'}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function PricingSectionInner() {
-  const [mode, setMode]   = useState('cash');
+  const [mode, setMode]   = useState('crypto');
   const [ethUsd, setEthUsd] = useState(null);
 
   useEffect(() => {
@@ -109,7 +58,7 @@ function PricingSectionInner() {
   return (
     <>
       <div className="flex border border-slate-200 mb-8">
-        {['cash', 'crypto'].map((m) => (
+        {['crypto', 'trade'].map((m) => (
           <button
             key={m}
             onClick={() => setMode(m)}
@@ -117,10 +66,21 @@ function PricingSectionInner() {
               mode === m ? 'bg-amber-400 text-slate-900' : 'bg-white text-slate-400 hover:text-slate-600'
             }`}
           >
-            {m === 'cash' ? 'Cash' : 'Crypto'}
+            {m === 'crypto' ? 'Crypto' : 'Trade / Barter'}
           </button>
         ))}
       </div>
+
+      {mode === 'trade' && (
+        <div className="mb-8 border border-amber-200 bg-amber-50 px-6 py-5">
+          <p className="text-sm font-black uppercase tracking-widest text-amber-700 mb-1">Trade instead of pay</p>
+          <p className="text-slate-500 text-sm leading-relaxed">
+            I built Homestead, a barter exchange, because I don't think everything needs to run through dollars.
+            If you've got goods, equipment, land work, or labor you'd rather trade than pay cash for, tell me what
+            you have and what you need - we'll work out fair terms directly.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {tiers.map((tier) => (
@@ -132,12 +92,14 @@ function PricingSectionInner() {
               {tier.title}
             </h3>
             <div className="mb-6">
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-slate-900 transition-all">
-                  {mode === 'cash' ? tier.cashPrice : tier.cryptoPrice}
-                </span>
-                <span className="text-slate-400 text-sm">{tier.unit}</span>
-              </div>
+              {mode !== 'trade' && (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-slate-900 transition-all">
+                    {tier.cryptoPrice}
+                  </span>
+                  <span className="text-slate-400 text-sm">{tier.unit}</span>
+                </div>
+              )}
               {mode === 'crypto' && ethUsd && (
                 <p className="text-slate-400 text-xs mt-1">
                   ≈ ${(tier.cryptoEth * ethUsd).toLocaleString('en-US', { maximumFractionDigits: 0 })} USD
@@ -152,23 +114,6 @@ function PricingSectionInner() {
                 </li>
               ))}
             </ul>
-
-            {mode === 'crypto' && tier.title === 'Site Build' && (
-              <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
-                <p className="text-xs uppercase tracking-widest font-bold text-slate-400">Secure Your Spot</p>
-                <p className="text-slate-500 text-xs leading-relaxed">
-                  0.1 ETH refundable deposit. Applied to your balance if we move forward — returned in full if we don't.
-                </p>
-                <a
-                  href="/client"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full text-center bg-amber-400 hover:bg-amber-300 text-slate-900 font-black uppercase tracking-widest text-xs px-4 py-3 transition-colors"
-                >
-                  Submit Deposit
-                </a>
-              </div>
-            )}
           </div>
         ))}
       </div>
