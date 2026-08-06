@@ -44,8 +44,9 @@ import PricingSection from '../components/PricingSection.jsx';
         </h1>
 
         <p class="text-slate-400 text-lg md:text-xl max-w-xl leading-relaxed mb-12">
+          <!-- FLAG: pitch/hook needs more thought - not landing cleanly yet -->
           Websites, Google presence, networking, devices - if it plugs in or goes online,
-          I can handle it. One person, local, reachable by phone. Every project is handed off with your code, your logins, and everything you need - whether you continue with me or not.
+          I can handle it. One person, local. Every project is handed off with your code, your logins, and everything you need - whether you continue with me or not.
         </p>
 
         <div class="flex flex-col sm:flex-row gap-4">
@@ -55,12 +56,6 @@ import PricingSection from '../components/PricingSection.jsx';
             This is what "React island" means - one interactive component in a static page.
           -->
           <OrderModal client:load />
-          <a
-            href="tel:+17162289418"
-            class="inline-block border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-amber-400 font-bold uppercase tracking-widest text-sm px-8 py-4 transition-colors"
-          >
-            716.228.9418
-          </a>
         </div>
 
       </div>
@@ -106,7 +101,7 @@ import PricingSection from '../components/PricingSection.jsx';
               tag: 'Retainer',
             },
           ].map(service => (
-            <div class="border border-slate-100 bg-slate-50 p-8">
+            <div class="border border-slate-100 bg-slate-50 rounded-xl shadow-md p-8">
               <span class="text-xs uppercase tracking-widest font-bold text-amber-500 mb-3 block">
                 {service.tag}
               </span>
@@ -154,7 +149,7 @@ import PricingSection from '../components/PricingSection.jsx';
               desc: 'I complete each item. You confirm it. ETH releases per milestone. Every step is permanent, timestamped, and on-chain - no ambiguity about what was delivered.',
             },
           ].map(item => (
-            <div class="bg-white border border-slate-200 p-8">
+            <div class="bg-white border border-slate-200 rounded-xl shadow-md p-8">
               <span class="text-4xl font-black text-amber-400 block mb-4">{item.step}</span>
               <h3 class="text-base font-black uppercase tracking-tight text-slate-900 mb-3">{item.title}</h3>
               <p class="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
