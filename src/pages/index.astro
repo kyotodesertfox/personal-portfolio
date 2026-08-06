@@ -291,36 +291,19 @@ import PricingSection from '../components/PricingSection.jsx';
       </div>
     </section>
 
-    <!-- =====================================================================
-         CONTACT
-         Light footer section - ends on an open, approachable note.
-    ====================================================================== -->
-    <section class="bg-white px-6 py-20 border-t border-slate-100">
-      <div class="max-w-4xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-10">
-
-        <div>
-          <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">Get in touch</p>
-          <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-6">
-            Let's work<br />together.
-          </h2>
-          <a
-            href="mailto:zenko18@gmail.com"
-            class="text-lg font-mono font-bold text-slate-700 hover:text-amber-500 transition-colors"
-          >
-            zenko18@gmail.com
-          </a>
-        </div>
-
-        <div class="text-right">
-          <p class="text-xs uppercase tracking-[0.2em] font-bold text-slate-300">
-            © {new Date().getFullYear()} Justin
-          </p>
-          <p class="text-xs text-slate-400 mt-1">Jacksonville, FL</p>
-        </div>
-
-      </div>
-    </section>
-
   </main>
+
+  <!-- =====================================================================
+       FOOTER
+       Thin bar - just attribution, no CTA.
+  ====================================================================== -->
+  <footer class="bg-slate-900 border-t-4 border-amber-400 px-6 py-6">
+    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p class="text-xs uppercase tracking-[0.2em] font-bold text-white">
+        © {new Date().getFullYear()} Justin
+      </p>
+      <p class="text-xs text-white">Jacksonville, FL</p>
+    </div>
+  </footer>
 
 </Layout>
