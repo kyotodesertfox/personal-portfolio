@@ -14,6 +14,7 @@ const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const isValidPhone = (v) => /^\d{3}-\d{3}-\d{4}$/.test(v);
 
 const initialNewSite = { name: '', email: '', phone: '', purpose: '', url: '', comments: '', file: null };
+const initialExisting = { name: '', email: '', url: '', comments: '' };
 
 function Field({ label, children }) {
   return (
@@ -31,9 +32,11 @@ export default function OrderModal() {
   const [tab, setTab]             = useState(0);
   const [step, setStep]           = useState(0);
   const [form, setForm]           = useState(initialNewSite);
+  const [existing, setExisting]   = useState(initialExisting);
   const [submitted, setSubmitted] = useState(false);
 
-  const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+  const set         = (key, val) => setForm(f => ({ ...f, [key]: val }));
+  const setExistingField = (key, val) => setExisting(f => ({ ...f, [key]: val }));
 
   const stepValid = [
     form.name.trim() && isValidEmail(form.email) && isValidPhone(form.phone),
@@ -41,24 +44,38 @@ export default function OrderModal() {
     form.comments.trim(),
   ];
 
+  const existingValid = existing.name.trim() && isValidEmail(existing.email) && existing.url.trim() && existing.comments.trim();
+
   const close = () => {
     setOpen(false);
     setTab(0);
     setStep(0);
     setForm(initialNewSite);
+    setExisting(initialExisting);
     setSubmitted(false);
   };
 
   const submit = async () => {
     const data = new FormData();
     data.append('form-name', 'project-intake');
-    data.append('name',     form.name);
-    data.append('email',    form.email);
-    data.append('phone',    form.phone);
-    data.append('purpose',  form.purpose);
-    data.append('url',      form.url);
-    data.append('comments', form.comments);
-    if (form.file) data.append('file', form.file);
+
+    if (tab === 0) {
+      data.append('inquiry-type', 'New Site');
+      data.append('name',     form.name);
+      data.append('email',    form.email);
+      data.append('phone',    form.phone);
+      data.append('purpose',  form.purpose);
+      data.append('url',      form.url);
+      data.append('comments', form.comments);
+      if (form.file) data.append('file', form.file);
+    } else {
+      data.append('inquiry-type', 'Existing Site');
+      data.append('name',     existing.name);
+      data.append('email',    existing.email);
+      data.append('url',      existing.url);
+      data.append('comments', existing.comments);
+    }
+
     await fetch('/', { method: 'POST', body: data });
     setSubmitted(true);
   };
@@ -67,7 +84,7 @@ export default function OrderModal() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-block bg-amber-400 hover:bg-amber-300 text-slate-900 font-black uppercase tracking-widest text-sm px-8 py-4 transition-colors"
+        className="inline-block bg-amber-400 hover:bg-amber-300 text-slate-900 font-black uppercase tracking-widest text-sm px-8 py-4 rounded-lg shadow-lg shadow-amber-400/20 hover:shadow-xl hover:shadow-amber-400/30 hover:-translate-y-0.5 transition-all"
       >
         Let Me Build For You
       </button>
@@ -186,11 +203,32 @@ export default function OrderModal() {
               {tab === 1 && !submitted && (
                 <div className="space-y-5">
                   <p className="text-xs uppercase tracking-widest font-bold text-slate-400 mb-4">Existing Site</p>
-                  <Field label="Full Name"><input className={inputClass} placeholder="John Smith" /></Field>
-                  <Field label="Email Address"><input className={inputClass} type="email" placeholder="john@example.com" /></Field>
-                  <Field label="Current Site URL"><input className={inputClass} placeholder="mysite.com" /></Field>
+                  <Field label="Full Name">
+                    <input
+                      className={inputClass} placeholder="John Smith"
+                      value={existing.name} onChange={e => setExistingField('name', e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Email Address">
+                    <input
+                      className={`${inputClass} ${existing.email && !isValidEmail(existing.email) ? 'border-red-300' : ''}`}
+                      type="email" placeholder="john@example.com"
+                      value={existing.email} onChange={e => setExistingField('email', e.target.value)}
+                    />
+                    {existing.email && !isValidEmail(existing.email) && <p className="text-red-400 text-xs mt-1">Enter a valid email address</p>}
+                  </Field>
+                  <Field label="Current Site URL">
+                    <input
+                      className={inputClass} placeholder="mysite.com"
+                      value={existing.url} onChange={e => setExistingField('url', e.target.value)}
+                    />
+                  </Field>
                   <Field label="What needs to change?">
-                    <textarea className={`${inputClass} resize-none`} rows={4} placeholder="Describe what you need updated, fixed, or added..." />
+                    <textarea
+                      className={`${inputClass} resize-none`} rows={4}
+                      placeholder="Describe what you need updated, fixed, or added..."
+                      value={existing.comments} onChange={e => setExistingField('comments', e.target.value)}
+                    />
                   </Field>
                 </div>
               )}
@@ -233,7 +271,11 @@ export default function OrderModal() {
                     </button>
                   )
                 ) : (
-                  <button onClick={submit} className="bg-slate-900 hover:bg-slate-700 text-white font-black uppercase tracking-widest text-xs px-6 py-3 transition-colors">
+                  <button
+                    onClick={submit}
+                    disabled={!existingValid}
+                    className="bg-slate-900 text-white font-black uppercase tracking-widest text-xs px-6 py-3 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:bg-slate-700"
+                  >
                     Submit
                   </button>
                 )}
