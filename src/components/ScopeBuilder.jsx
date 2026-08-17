@@ -25,7 +25,6 @@ const SCOPE_CANCEL_EVENT = parseAbiItem('event ScopeItemCancelled(uint256 indexe
 
 const SERVICES = [
   { id: 'site-build',    label: 'Site Build',          detail: 'Up to 5 pages, mobile-first',     eth: '1'    },
-  { id: 'managed',       label: 'Managed Presence',     detail: 'Google Ads + monthly report',     eth: '0.2'  },
   { id: 'it-support',   label: 'IT Support',            detail: 'Remote or on-site, per hour',     eth: '0.03' },
   { id: 'seo',          label: 'SEO Setup',             detail: 'On-page optimisation + sitemap',  eth: '0.15' },
   { id: 'domain-email', label: 'Domain & Email',        detail: 'Domain reg + business email',     eth: '0.05' },
