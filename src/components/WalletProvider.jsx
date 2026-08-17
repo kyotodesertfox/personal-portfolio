@@ -35,7 +35,7 @@ createAppKit({
   projectId,
   metadata: {
     name: 'IT & Web Guy',
-    description: 'Local IT & web services. Jacksonville, FL.',
+    description: 'Independent IT & web services.',
     url: typeof window !== 'undefined' ? window.location.origin : '',
     icons: []
   },
