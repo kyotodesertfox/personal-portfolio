@@ -68,36 +68,75 @@ import ProjectGallery from '../components/ProjectGallery.jsx';
          Light section - creates contrast rhythm with the dark hero above.
     ====================================================================== -->
     <section class="bg-white px-6 py-20">
-      <div class="max-w-4xl mx-auto">
+      <div class="max-w-5xl mx-auto">
 
         <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">What I do</p>
-        <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-12">Services</h2>
+        <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-4">Services</h2>
+        <p class="text-slate-500 text-lg max-w-2xl mb-12">
+          One person who builds the whole thing - the site, the admin behind it, the contracts
+          underneath it, and the machines it all runs on. Nothing gets subcontracted and nothing
+          gets handed to a page builder.
+        </p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/*
-            In Astro you can still use JSX-style expressions inside the template.
-            But notice - no map() over a useState array. This is just static data
-            defined at build time. No hooks, no re-renders.
-          */}
-
+        {/*
+          Static data evaluated at build time - no hooks, no re-renders. The
+          icon is raw markup rather than a component so the whole set stays
+          editable in one place; Fragment set:html injects it into the shared
+          <svg> wrapper below, which keeps stroke weight consistent.
+        */}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
             {
+              tag: 'Build',
               title: 'Website Design & Build',
-              desc: 'Custom sites built for speed, clarity, and conversion. No WordPress, no Squarespace - written in code, built to fit your business.',
-              tag: 'One-time',
+              desc: 'Custom sites written in code - fast, mobile-first, and shaped to your business. No WordPress, no Squarespace, no template everyone else is using.',
+              icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/>',
             },
             {
+              tag: 'Handoff',
+              title: 'An Admin You Can Actually Use',
+              desc: 'A control panel built for the person who will really be updating the site. Add a job, change a photo, publish - no code, no git, no calling me to change a phone number.',
+              icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+            },
+            {
+              tag: 'On-chain',
+              title: 'Smart Contracts',
+              desc: 'Solidity, written and deployed upgradeable from day one. Escrow, marketplaces, tokens, and staking - audited by the only reviewer that matters, which is anyone who reads the chain.',
+              icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',
+            },
+            {
+              tag: 'Exchange',
+              title: 'Selling Through Homestead',
+              desc: 'Getting your goods or your work listed on the exchange and moving. Your price, your customers, direct - no distributor between you and the person buying.',
+              icon: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.6Z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+            },
+            {
+              tag: 'Ongoing',
               title: 'Maintenance & Updates',
-              desc: 'Site updates, content changes, and performance monitoring. You focus on the work - I keep the site current.',
-              tag: 'Retainer',
+              desc: 'Content changes, dependency and security patching, uptime and performance monitoring. You do the work you are good at, I keep the thing running.',
+              icon: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>',
+            },
+            {
+              tag: 'Hands-on',
+              title: 'IT, Networking & Devices',
+              desc: 'Wi-Fi that reaches the back of the shop, a printer that will not talk, a machine that needs setting up. On-site or remote, whichever gets it fixed sooner.',
+              icon: '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/>',
             },
           ].map(service => (
-            <div class="border border-slate-100 bg-slate-50 rounded-xl shadow-md p-8">
-              <span class="text-xs uppercase tracking-widest font-bold text-amber-500 mb-3 block">
-                {service.tag}
-              </span>
-              <h3 class="text-lg font-black uppercase tracking-tight text-slate-900 mb-3">
+            <div class="group border border-slate-100 bg-slate-50 rounded-xl shadow-md p-8 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:border-amber-200">
+              <div class="flex items-center justify-between mb-5">
+                <svg
+                  width="26" height="26" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="text-amber-500 shrink-0"
+                >
+                  <Fragment set:html={service.icon} />
+                </svg>
+                <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 group-hover:text-amber-600 transition-colors">
+                  {service.tag}
+                </span>
+              </div>
+              <h3 class="text-lg font-black uppercase tracking-tight text-slate-900 mb-3 leading-tight">
                 {service.title}
               </h3>
               <p class="text-slate-500 text-sm leading-relaxed">
@@ -105,8 +144,17 @@ import ProjectGallery from '../components/ProjectGallery.jsx';
               </p>
             </div>
           ))}
-
         </div>
+
+        <div class="mt-8 border-l-4 border-amber-400 bg-slate-50 px-6 py-5">
+          <p class="text-sm font-black uppercase tracking-widest text-slate-900 mb-1">Whatever you take</p>
+          <p class="text-slate-500 text-sm leading-relaxed">
+            It gets handed off with your code, your logins, your domain, and your accounts in your
+            name. If you stop working with me, everything keeps running and you owe nobody permission
+            to touch it.
+          </p>
+        </div>
+
       </div>
     </section>
 
