@@ -6,7 +6,7 @@ import ProjectGallery from '../components/ProjectGallery.jsx';
 
 <Layout title="IT & Web Guy">
 
-  <main>
+  <main class="pb-16">
 
     <!--
       Netlify detects forms at BUILD TIME by scanning static HTML.
@@ -316,12 +316,16 @@ import ProjectGallery from '../components/ProjectGallery.jsx';
        FOOTER
        Thin bar - just attribution, no CTA.
   ====================================================================== -->
-  <footer class="bg-slate-900 border-t-4 border-amber-400 px-6 py-6">
-    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+  <!--
+    Pinned to the viewport, so z-index matters: the lightbox overlay sits at
+    z-50 and must stay above this. <main> carries matching bottom padding so
+    the last section is not hidden underneath.
+  -->
+  <footer class="fixed bottom-0 inset-x-0 z-40 bg-slate-900 border-t-4 border-amber-400 px-6 py-4">
+    <div class="max-w-4xl mx-auto flex items-center justify-center">
       <p class="text-xs uppercase tracking-[0.2em] font-bold text-white">
         © {new Date().getFullYear()} Justin
       </p>
-      <p class="text-xs text-white">Independent</p>
     </div>
   </footer>
 
