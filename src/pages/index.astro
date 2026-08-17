@@ -111,48 +111,6 @@ import ProjectGallery from '../components/ProjectGallery.jsx';
     </section>
 
     <!-- =====================================================================
-         HOW IT WORKS
-         Light section - simple, readable by anyone.
-    ====================================================================== -->
-    <section class="bg-slate-50 px-6 py-20 border-t border-slate-100">
-      <div class="max-w-4xl mx-auto">
-
-        <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">The process</p>
-        <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-4">How it works</h2>
-        <p class="text-slate-500 text-lg max-w-xl mb-12">
-          Every project runs through a smart contract. Scope is agreed on-chain, funds are escrowed, and ETH releases only as work is confirmed done - no disputes, no he-said-she-said.
-        </p>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              step: '01',
-              title: 'Agree on scope',
-              desc: 'Submit your request. I price it out and build a line-by-line work order. Both wallets sign before any ETH moves - the contract is the agreement.',
-            },
-            {
-              step: '02',
-              title: 'Fund the escrow',
-              desc: 'Deposit ETH into the smart contract. It stays locked - inaccessible to either party - until each milestone is confirmed complete. Pay all at once or in installments.',
-            },
-            {
-              step: '03',
-              title: 'Sign off as work is done',
-              desc: 'I complete each item. You confirm it. ETH releases per milestone. Every step is permanent, timestamped, and on-chain - no ambiguity about what was delivered.',
-            },
-          ].map(item => (
-            <div class="bg-white border border-slate-200 rounded-xl shadow-md p-8">
-              <span class="text-4xl font-black text-amber-400 block mb-4">{item.step}</span>
-              <h3 class="text-base font-black uppercase tracking-tight text-slate-900 mb-3">{item.title}</h3>
-              <p class="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-
-      </div>
-    </section>
-
-    <!-- =====================================================================
          WORK
          Dark section again - alternating rhythm.
     ====================================================================== -->
