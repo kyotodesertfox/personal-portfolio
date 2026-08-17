@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import OrderModal from '../components/OrderModal.jsx';
+import PricingSection from '../components/PricingSection.jsx';
 ---
 
 <Layout title="IT & Web Guy | Jacksonville, FL">
@@ -165,8 +166,7 @@ import OrderModal from '../components/OrderModal.jsx';
         </div>
 
         <p class="text-slate-400 text-xs mt-8">
-          Have goods, equipment, or labor to trade instead of paying? Say so in your request - I built
-          Homestead, a barter exchange, because I don't think everything needs to run through dollars.
+          Have goods, equipment, or labor to trade instead? See the Trade / Barter option below.
         </p>
 
       </div>
@@ -213,13 +213,13 @@ import OrderModal from '../components/OrderModal.jsx';
               <img
                 src="/work/arcwright-home.webp"
                 alt="ArcWright Welding home page - Precision Fabrication headline with custom animated scorpion logo"
-                width="1200" height="341" loading="lazy" decoding="async"
+                width="1200" height="344" loading="lazy" decoding="async"
                 class="w-full h-auto border border-slate-700"
               />
               <img
                 src="/work/arcwright-portfolio.webp"
                 alt="ArcWright Welding portfolio page - filterable project grid"
-                width="1200" height="580" loading="lazy" decoding="async"
+                width="1200" height="585" loading="lazy" decoding="async"
                 class="w-full h-auto border border-slate-700"
               />
             </div>
@@ -288,6 +288,38 @@ import OrderModal from '../components/OrderModal.jsx';
           </div>
 
         </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         PRICING
+         Firm numbers. No ranges, no haggling.
+    ====================================================================== -->
+    <section class="bg-white px-6 py-20 border-t border-slate-100">
+      <div class="max-w-4xl mx-auto">
+
+        <p class="text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2">Transparent pricing</p>
+        <h2 class="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-4">What it costs</h2>
+        <p class="text-slate-500 text-lg max-w-xl mb-12">
+          Flat rates. No surprises. Paid in cryptocurrency, or traded for goods, equipment, or labor.
+        </p>
+
+        <PricingSection client:load />
+
+        <p class="text-slate-400 text-xs mt-8">
+          Additional revisions beyond what's included are billed at the hourly IT rate.
+          Custom or complex projects quoted separately.
+        </p>
+
+        <div class="mt-6 border border-amber-200 bg-amber-50 px-6 py-5">
+          <p class="text-sm font-black uppercase tracking-widest text-amber-700 mb-1">Crypto payment - financing available</p>
+          <p class="text-slate-500 text-sm leading-relaxed">
+            Paying in cryptocurrency? Payment plans are available on all services.
+            Split any project into milestones - no bank, no interest.
+            Reach out to discuss terms.
+          </p>
+        </div>
+
       </div>
     </section>
 
