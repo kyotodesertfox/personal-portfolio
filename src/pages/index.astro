@@ -30,22 +30,6 @@ import PricingSection from '../components/PricingSection.jsx';
     </form>
 
     <!-- =====================================================================
-         ARRIVAL BRIDGE
-         arcwrightwelding.com redirects here. Visitors from that domain came
-         looking for a welder, not a web guy - this gives them a reason to be
-         on the page instead of bouncing off an unexplained hero.
-    ====================================================================== -->
-    <div class="bg-slate-800 border-b border-slate-700 px-6 py-3">
-      <div class="max-w-4xl mx-auto">
-        <p class="text-xs text-slate-400 leading-relaxed">
-          <span class="text-amber-400 font-bold uppercase tracking-widest">Came from ArcWright Welding?</span>
-          That site was designed and built here -
-          <a href="#work" class="text-white underline decoration-slate-600 hover:decoration-amber-400 underline-offset-2 transition-colors">see the build</a>.
-        </p>
-      </div>
-    </div>
-
-    <!-- =====================================================================
          HERO
          Dark slate background, amber accent. Sets the tone immediately.
     ====================================================================== -->
@@ -205,10 +189,15 @@ import PricingSection from '../components/PricingSection.jsx';
                 <span>Tailwind</span>
               </div>
             </div>
-            <!--
-              Screenshots rather than a live link - the site's domain now points
-              elsewhere, so a "View Site" button would send visitors in a circle.
-            -->
+            <a
+              href="https://arcwrightwelding.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-block mt-4 border border-slate-700 hover:border-amber-400 text-slate-400 hover:text-amber-400 text-xs font-bold uppercase tracking-widest px-6 py-3 transition-colors"
+            >
+              View Site →
+            </a>
+
             <div class="mt-6 space-y-3">
               <img
                 src="/work/arcwright-home.webp"
