@@ -82,6 +82,21 @@ const clock = {
   },
 };
 
+// Stroked chevrons rather than ‹ › glyphs - the text characters render thin
+// at any size, and this matches the stroke weight of the arrows already used
+// in the tech-stack rows.
+function Chevron({ dir = 'right', size = 20 }) {
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={dir === 'left' ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'} />
+    </svg>
+  );
+}
+
 export default function ProjectGallery({ shots = [], label = 'project' }) {
   const tick = useSyncExternalStore(
     (fn) => clock.subscribe(fn),
@@ -124,8 +139,7 @@ export default function ProjectGallery({ shots = [], label = 'project' }) {
 
   const arrowClass =
     'absolute top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center ' +
-    'bg-slate-950/60 hover:bg-slate-950/90 text-slate-200 hover:text-amber-400 ' +
-    'text-xl leading-none transition-colors';
+    'bg-slate-950/60 hover:bg-slate-950/90 text-amber-400 hover:text-amber-300 transition-colors';
 
   return (
     <>
@@ -162,8 +176,12 @@ export default function ProjectGallery({ shots = [], label = 'project' }) {
 
         {count > 1 && (
           <>
-            <button onClick={() => go(-1)} aria-label="Previous" className={`${arrowClass} left-0`}>‹</button>
-            <button onClick={() => go(1)}  aria-label="Next"     className={`${arrowClass} right-0`}>›</button>
+            <button onClick={() => go(-1)} aria-label="Previous" className={`${arrowClass} left-0`}>
+              <Chevron dir="left" size={18} />
+            </button>
+            <button onClick={() => go(1)} aria-label="Next" className={`${arrowClass} right-0`}>
+              <Chevron dir="right" size={18} />
+            </button>
 
             <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
               {shots.map((shot, i) => (
@@ -203,36 +221,45 @@ export default function ProjectGallery({ shots = [], label = 'project' }) {
           </button>
 
           {/* Swallows the click the backdrop is listening for. */}
-          <figure className="max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={shots[index].src}
-              alt={shots[index].alt}
-              className="w-full h-auto max-h-[75vh] object-contain border border-slate-700"
-            />
+          <figure
+            className="max-w-5xl w-full flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* w-fit shrink-wraps this to the image's rendered size, so the
+                arrows sit on the image edges rather than the monitor edges.
+                Anchoring them to the overlay instead pins them to the viewport. */}
+            <div className="relative w-fit max-w-full">
+              <img
+                src={shots[index].src}
+                alt={shots[index].alt}
+                className="block w-auto max-w-full max-h-[75vh] object-contain border border-slate-700"
+              />
+
+              {count > 1 && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); go(-1); }}
+                    aria-label="Previous"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center bg-slate-950/70 hover:bg-slate-950 text-amber-400 hover:text-amber-300 transition-colors"
+                  >
+                    <Chevron dir="left" size={24} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); go(1); }}
+                    aria-label="Next"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center bg-slate-950/70 hover:bg-slate-950 text-amber-400 hover:text-amber-300 transition-colors"
+                  >
+                    <Chevron dir="right" size={24} />
+                  </button>
+                </>
+              )}
+            </div>
+
             <figcaption className="mt-3 text-center text-slate-400 text-xs uppercase tracking-widest">
               {shots[index].alt}
               {count > 1 && <span className="text-slate-600"> · {index + 1} / {count}</span>}
             </figcaption>
           </figure>
-
-          {count > 1 && (
-            <>
-              <button
-                onClick={(e) => { e.stopPropagation(); go(-1); }}
-                aria-label="Previous"
-                className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-amber-400 text-3xl px-3 py-6 transition-colors"
-              >
-                ‹
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); go(1); }}
-                aria-label="Next"
-                className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-amber-400 text-3xl px-3 py-6 transition-colors"
-              >
-                ›
-              </button>
-            </>
-          )}
         </div>
       )}
     </>
