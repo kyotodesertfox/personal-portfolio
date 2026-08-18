@@ -319,19 +319,37 @@ import ProjectGallery from '../components/ProjectGallery.jsx';
               step: '02',
               title: 'You trade through Homestead',
               desc: 'What you grow, make, or do gets listed on the exchange - your price, your terms, direct. Listing means posting a pledge: ETH held by the Treasury contract, never spent and never mine, returned to you as your orders are delivered. It is what lets a stranger trust you without knowing you.',
+              href: 'https://homesteaders.netlify.app',
             },
             {
               step: '03',
               title: 'The platform takes a fee',
               desc: 'A small fee applies to each trade, set by the Treasury contract and visible on-chain. That fee is how I get paid - not by you, by the volume you help create.',
             },
-          ].map(item => (
-            <div class="bg-slate-50 border border-slate-200 rounded-xl shadow-md p-8">
-              <span class="text-4xl font-black text-amber-400 block mb-4">{item.step}</span>
-              <h3 class="text-base font-black uppercase tracking-tight text-slate-900 mb-3">{item.title}</h3>
-              <p class="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
+          ].map(item => {
+            const Tag = item.href ? 'a' : 'div';
+            return (
+              <Tag
+                {...(item.href ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
+                class:list={[
+                  'group relative rounded-xl shadow-md p-8 transition-all',
+                  item.href
+                    ? 'bg-green-50/60 border-2 border-green-600 hover:shadow-lg hover:-translate-y-0.5 hover:bg-green-50'
+                    : 'bg-slate-50 border border-slate-200',
+                ]}
+              >
+                {item.href && (
+                  <span class="absolute top-5 right-5 flex items-center gap-1.5 text-green-700 text-[10px] font-black uppercase tracking-widest">
+                    Visit
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"><path d="M7 17 17 7M7 7h10v10"/></svg>
+                  </span>
+                )}
+                <span class={`text-4xl font-black block mb-4 ${item.href ? 'text-green-600' : 'text-amber-400'}`}>{item.step}</span>
+                <h3 class="text-base font-black uppercase tracking-tight text-slate-900 mb-3">{item.title}</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+              </Tag>
+            );
+          })}
         </div>
 
         <div class="mt-8 border border-amber-200 bg-amber-50 px-6 py-5">
